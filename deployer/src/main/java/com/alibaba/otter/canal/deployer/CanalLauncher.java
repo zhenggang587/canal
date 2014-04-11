@@ -7,6 +7,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 /**
  * canal独立版本启动的入口类
@@ -34,6 +36,7 @@ public class CanalLauncher {
             final CanalController controller = new CanalController(properties);
             controller.start();
             logger.info("## the canal server is running now ......");
+
             Runtime.getRuntime().addShutdownHook(new Thread() {
 
                 public void run() {

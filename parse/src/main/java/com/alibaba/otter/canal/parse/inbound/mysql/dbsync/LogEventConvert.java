@@ -269,6 +269,8 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
 
             String fullname = table.getDbName() + "." + table.getTableName();
             // check name filter
+
+			//logger.info("pos:" + event.getHeader().getLogPos() + ", fullname: " + fullname + ", fillter: " + nameFilter.pattern);
             if (nameFilter != null && !nameFilter.filter(fullname)) {
                 return null;
             }
@@ -299,10 +301,15 @@ public class LogEventConvert extends AbstractCanalLifeCycle implements BinlogPar
             BitSet changeColumns = event.getColumns();
             TableMeta tableMeta = null;
             if (tableMetaCache != null) {// 入错存在table meta cache
-                tableMeta = tableMetaCache.getTableMeta(table.getDbName(), table.getTableName());
-                if (tableMeta == null) {
-                    throw new CanalParseException("not found [" + fullname + "] in db , pls check!");
-                }
+				try {
+					tableMeta = tableMetaCache.getTableMeta(table.getDbName(), table.getTableName());
+					if (tableMeta == null) {
+						throw new CanalParseException("not found [" + fullname + "] in db , pls check!");
+					}
+				} catch (Exception e) {
+					logger.warn(e.getMessage(), e);
+					return null;
+				}
             }
 
             while (buffer.nextOneRow(columns)) {

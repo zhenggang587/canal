@@ -62,15 +62,7 @@
 			</list>
 		</property>
 	</bean>
-	
-	<bean id="metaManager" class="com.alibaba.otter.canal.meta.PeriodMixedMetaManager">
-		<property name="zooKeeperMetaManager">
-			<bean class="com.alibaba.otter.canal.meta.ZooKeeperMetaManager">
-				<property name="zkClientx" ref="zkClientx" />
-			</bean>
-		</property>
-		<property name="period" value="${canal.zookeeper.flush.period:1000}" />
-	</bean>
+
 	
 	<bean id="eventStore" class="com.alibaba.otter.canal.store.memory.MemoryEventStoreWithBuffer">
 		<property name="bufferSize" value="${canal.instance.memory.buffer.size:16384}" />
@@ -83,7 +75,32 @@
 		<property name="eventStore" ref="eventStore" />
 	</bean>
 
+    <!-- 消费位点记录 -->
+    <bean id="metaManager" class="com.alibaba.otter.canal.meta.PeriodMixedMetaManager">
+        <property name="zooKeeperMetaManager">
+            <bean class="com.alibaba.otter.canal.meta.ZooKeeperMetaManager">
+                <property name="zkClientx" ref="zkClientx" />
+            </bean>
+        </property>
+        <property name="period" value="${canal.zookeeper.flush.period:1000}" />
+    </bean>
+
 	<bean id="eventParser" class="com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser">
+
+        <!-- 解析位点记录 -->
+        <property name="logPositionManager">
+            <bean class="com.alibaba.otter.canal.parse.index.FailbackLogPositionManager">
+                <property name="primary">
+                    <bean class="com.alibaba.otter.canal.parse.index.MemoryLogPositionManager" />
+                </property>
+                <property name="failback">
+                    <bean class="com.alibaba.otter.canal.parse.index.MetaLogPositionManager">
+                        <property name="metaManager" ref="metaManager" />
+                    </bean>
+                </property>
+            </bean>
+        </property>
+
 		<property name="destination" value="${canal.instance.destination}" />
 		<property name="slaveId" value="${canal.instance.mysql.slaveId:1234}" />
 		<!-- 心跳配置 -->
@@ -117,20 +134,7 @@
 		<!-- 解析编码 -->
 		<!-- property name="connectionCharsetNumber" value="${canal.instance.connectionCharsetNumber:33}" /-->
 		<property name="connectionCharset" value="${canal.instance.connectionCharset:UTF-8}" />
-	
-		<!-- 解析位点记录 -->
-		<property name="logPositionManager">
-			<bean class="com.alibaba.otter.canal.parse.index.FailbackLogPositionManager">
-				<property name="primary">
-					<bean class="com.alibaba.otter.canal.parse.index.MemoryLogPositionManager" />
-				</property>
-				<property name="failback">
-					<bean class="com.alibaba.otter.canal.parse.index.MetaLogPositionManager">
-						<property name="metaManager" ref="metaManager" />
-					</bean>
-				</property>
-			</bean>
-		</property>
+
 		
 		<!-- failover切换时回退的时间 -->
 		<property name="fallbackIntervalInSeconds" value="${canal.instance.fallbackIntervalInSeconds:60}" />

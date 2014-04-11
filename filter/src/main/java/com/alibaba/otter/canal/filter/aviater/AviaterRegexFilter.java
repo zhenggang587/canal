@@ -33,9 +33,9 @@ public class AviaterRegexFilter implements CanalEventFilter<String> {
 
     private static final Comparator<String> COMPARATOR        = new StringComparator();
 
-    final private String                    pattern;
+    final public String                    pattern;
 
-    public AviaterRegexFilter(String pattern){
+    public AviaterRegexFilter(String pattern) {
         List<String> list = null;
         if (StringUtils.isEmpty(pattern)) {
             list = new ArrayList<String>();
